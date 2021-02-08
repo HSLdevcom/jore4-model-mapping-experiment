@@ -24,6 +24,8 @@ import fi.hsl.transmodel.model.jore.key.JrRoutePk;
 import fi.hsl.transmodel.model.jore.key.JrStopAreaPk;
 import fi.hsl.transmodel.model.jore.key.JrTerminalAreaPk;
 import fi.hsl.transmodel.model.jore.mixin.IHasOrderNumber;
+import io.vavr.Tuple;
+import io.vavr.Tuple2;
 import io.vavr.collection.HashSet;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
@@ -181,6 +183,29 @@ public interface JoreImportContext {
         return allRoutePoints()
                 .map(n -> nodes().get(JrNodePk.of(n)).get())
                 .filter(n -> n.nodeType() == NodeType.BUS_STOP);
+    }
+
+    @Value.Derived
+    default Map<JrRoutePathPk, List<JrNode>> nodesOnRoute() {
+        return routePaths()
+                .mapValues(rp -> linksPerRoutePath().getOrElse(rp.pk(), List.empty())
+                                                    .flatMap(link -> List.of(nodes().get(link.fkStartNode()).get(),
+                                                                             nodes().get(link.fkEndNode()).get()))
+                                                    // deduplicate
+                                                    .foldLeft(List.empty(),
+                                                              (nodes, node) -> nodes.isEmpty() || !nodes.last().equals(node) ? nodes.push(node) : nodes));
+    }
+
+    // We need a list of links between each bus stop
+    @Value.Derived
+    default Set<Tuple2<JrNode, JrNode>> busStopLinks() {
+        return nodesOnRoute()
+                .values()
+                .flatMap(nodes -> nodes.filter(node -> node.nodeType() == NodeType.BUS_STOP)
+                                       .grouped(2)
+                                       .map(pairs -> Tuple.of(pairs.get(0), pairs.get(1)))
+                                       .toSet())
+                .toSet();
     }
 
     static JoreImportContext of(final List<JrLine> lines,
