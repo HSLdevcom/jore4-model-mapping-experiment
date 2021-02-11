@@ -3,11 +3,14 @@ package fi.hsl.transmodel.xform;
 import com.google.common.base.Joiner;
 import fi.hsl.transmodel.model.jore.mixin.IHasCoordinates;
 import fi.hsl.transmodel.model.jore.mixin.IHasDuration;
+import fi.hsl.transmodel.model.jore.mixin.IHasTransitType;
 import io.vavr.collection.List;
 import org.rutebanken.netex.model.LocationStructure;
 import org.rutebanken.netex.model.ObjectFactory;
 import org.rutebanken.netex.model.SimplePoint_VersionStructure;
+import org.rutebanken.netex.model.StopTypeEnumeration;
 import org.rutebanken.netex.model.ValidBetween;
+import org.rutebanken.netex.model.VehicleModeEnumeration;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -49,5 +52,37 @@ public final class Util {
 
     public static String sanitizeId(final Object... fields) {
         return sanitizeId(List.of(fields));
+    }
+
+    public static VehicleModeEnumeration toVehicleMode(final IHasTransitType withType) {
+        switch (withType.transitType()) {
+            case BUS:
+                return VehicleModeEnumeration.BUS;
+            case SUBWAY:
+                return VehicleModeEnumeration.METRO;
+            case TRAM:
+                return VehicleModeEnumeration.TRAM;
+            case TRAIN:
+                return VehicleModeEnumeration.RAIL;
+            case FERRY:
+                return VehicleModeEnumeration.FERRY;
+        }
+        return VehicleModeEnumeration.OTHER;
+    }
+
+    public static StopTypeEnumeration toStopType(final IHasTransitType withType) {
+        switch (withType.transitType()) {
+            case BUS:
+                return StopTypeEnumeration.ONSTREET_BUS;
+            case SUBWAY:
+                return StopTypeEnumeration.METRO_STATION;
+            case TRAM:
+                return StopTypeEnumeration.TRAM_STATION;
+            case TRAIN:
+                return StopTypeEnumeration.RAIL_STATION;
+            case FERRY:
+                return StopTypeEnumeration.FERRY_STOP;
+        }
+        return StopTypeEnumeration.OTHER;
     }
 }

@@ -2,6 +2,7 @@ package fi.hsl.transmodel.xform;
 
 import fi.hsl.transmodel.MockJoreContextBuilder;
 import fi.hsl.transmodel.model.jore.JoreImportContext;
+import fi.hsl.transmodel.model.netex.PublicationDelivery;
 import org.junit.jupiter.api.Test;
 import org.rutebanken.netex.model.ObjectFactory;
 import org.rutebanken.netex.model.PublicationDeliveryStructure;
@@ -20,11 +21,14 @@ public class JoreImportContextConverterTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(JoreImportContextConverterTest.class);
 
+
     @Test
     public void testConversion() throws JAXBException, IOException, SAXException {
         final JoreImportContext ctx = MockJoreContextBuilder.ctx();
 
-        final PublicationDeliveryStructure publication = JoreImportContextConverter.convert(ctx);
+        final PublicationDelivery delivery = JoreImportContextConverter.convert(ctx);
+
+        final PublicationDeliveryStructure publication = delivery.xml();
 
         final JAXBContext jaxbContext = JAXBContext.newInstance(PublicationDeliveryStructure.class);
         final NeTExValidator neTExValidator = new NeTExValidator();

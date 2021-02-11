@@ -189,9 +189,11 @@ public interface JoreImportContext {
     default Map<JrRoutePathPk, List<JrNode>> nodesOnRoute() {
         return routePaths()
                 .mapValues(rp -> linksPerRoutePath().getOrElse(rp.pk(), List.empty())
+                                                    // Construct a list of nodes along the route path:
+                                                    // [node a, node b, node b, node c, node c, node d ..]
                                                     .flatMap(link -> List.of(nodes().get(link.fkStartNode()).get(),
                                                                              nodes().get(link.fkEndNode()).get()))
-                                                    // deduplicate
+                                                    // deduplicate -> [node a, node b, node c ..]
                                                     .foldLeft(List.empty(),
                                                               (nodes, node) -> nodes.isEmpty() || !nodes.last().equals(node) ? nodes.push(node) : nodes));
     }
