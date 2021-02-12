@@ -25,6 +25,7 @@ import io.vavr.collection.List;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
 
 /**
  * This class provides some pseudo-random mock data
@@ -36,11 +37,13 @@ public final class MockJoreContextBuilder {
     private static final RouteId ROUTE_1 = RouteId.of("1");
     private static final TerminalId TERMINAL = TerminalId.of("000003");
     private static final StopAreaId STOP_AREA = StopAreaId.of("10004");
+    private static final StopAreaId STOP_AREA_2 = StopAreaId.of("10005");
 
     private static final NodeId NODE_1 = NodeId.of("SOLMU 1");
     private static final NodeId NODE_2 = NodeId.of("SOLMU 2");
     private static final NodeId NODE_3 = NodeId.of("SOLMU 3");
     private static final NodeId NODE_4 = NodeId.of("SOLMU 4");
+    private static final NodeId NODE_5 = NodeId.of("SOLMU 5");
 
     private MockJoreContextBuilder() {
     }
@@ -112,25 +115,41 @@ public final class MockJoreContextBuilder {
                                    validFrom),
                 JrRoutePathLink.of(ROUTE_1,
                                    TRANSIT_TYPE,
-                                   RouteDirection.DIRECTION_2,
+                                   RouteDirection.DIRECTION_1,
                                    RouteLinkId.of(13),
+                                   4,
+                                   NODE_4,
+                                   NODE_5,
+                                   validFrom),
+                JrRoutePathLink.of(ROUTE_1,
+                                   TRANSIT_TYPE,
+                                   RouteDirection.DIRECTION_2,
+                                   RouteLinkId.of(14),
                                    1,
+                                   NODE_5,
+                                   NODE_4,
+                                   validFrom),
+                JrRoutePathLink.of(ROUTE_1,
+                                   TRANSIT_TYPE,
+                                   RouteDirection.DIRECTION_2,
+                                   RouteLinkId.of(15),
+                                   2,
                                    NODE_4,
                                    NODE_3,
                                    validFrom),
                 JrRoutePathLink.of(ROUTE_1,
                                    TRANSIT_TYPE,
                                    RouteDirection.DIRECTION_2,
-                                   RouteLinkId.of(14),
-                                   2,
+                                   RouteLinkId.of(16),
+                                   3,
                                    NODE_3,
                                    NODE_2,
                                    validFrom),
                 JrRoutePathLink.of(ROUTE_1,
                                    TRANSIT_TYPE,
                                    RouteDirection.DIRECTION_2,
-                                   RouteLinkId.of(15),
-                                   3,
+                                   RouteLinkId.of(17),
+                                   4,
                                    NODE_2,
                                    NODE_1,
                                    validFrom)
@@ -144,11 +163,17 @@ public final class MockJoreContextBuilder {
         );
         final List<JrStopArea> stopAreas = List.of(
                 JrStopArea.of(STOP_AREA,
-                              TERMINAL,
+                              Optional.of(TERMINAL),
                               TRANSIT_TYPE,
                               "Kirkkokatu",
                               "60.17127",
-                              "24.95657")
+                              "24.95657"),
+                JrStopArea.of(STOP_AREA_2,
+                              Optional.empty(),
+                              TRANSIT_TYPE,
+                              "Joku katu",
+                              "60.47127",
+                              "24.55657")
         );
         final List<JrStop> stops = List.of(
                 JrStop.of(STOP_AREA,
@@ -166,13 +191,22 @@ public final class MockJoreContextBuilder {
                           "Rautatientori",
                           "123",
                           "60.17076",
+                          "24.94271"),
+                JrStop.of(STOP_AREA_2,
+                          NODE_5,
+                          "Joku katu 1",
+                          "120A",
+                          "Joku katu 1",
+                          "123",
+                          "60.17076",
                           "24.94271")
         );
         final List<JrNode> nodes = List.of(
                 JrNode.of(NODE_1, NodeType.BUS_STOP, "60.17107", "24.94289"),
                 JrNode.of(NODE_2, NodeType.CROSSROADS, "60.27522", "25.03550"),
                 JrNode.of(NODE_3, NodeType.CROSSROADS, "60.16900", "24.93166"),
-                JrNode.of(NODE_4, NodeType.BUS_STOP, "60.17076", "24.94271")
+                JrNode.of(NODE_4, NodeType.BUS_STOP, "60.17076", "24.94271"),
+                JrNode.of(NODE_5, NodeType.BUS_STOP, "60.27076", "24.84271")
         );
         final List<JrLink> links = List.of(
                 JrLink.of(TRANSIT_TYPE,
@@ -188,6 +222,10 @@ public final class MockJoreContextBuilder {
                           NODE_4,
                           11),
                 JrLink.of(TRANSIT_TYPE,
+                          NODE_4,
+                          NODE_5,
+                          3),
+                JrLink.of(TRANSIT_TYPE,
                           NODE_2,
                           NODE_1,
                           5),
@@ -198,7 +236,11 @@ public final class MockJoreContextBuilder {
                 JrLink.of(TRANSIT_TYPE,
                           NODE_4,
                           NODE_3,
-                          11)
+                          11),
+                JrLink.of(TRANSIT_TYPE,
+                          NODE_5,
+                          NODE_4,
+                          3)
         );
         final List<JrPoint> points = List.of(
                 JrPoint.of(TRANSIT_TYPE,

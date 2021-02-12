@@ -14,6 +14,11 @@ public @interface JoreColumn {
     String name() default "";
 
     /**
+     * @return Whether or not this column may be nullable
+     */
+    boolean nullable() default false;
+
+    /**
      * @return An example value for this column
      */
     String example() default "";

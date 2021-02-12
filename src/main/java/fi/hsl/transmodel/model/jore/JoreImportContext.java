@@ -102,7 +102,8 @@ public interface JoreImportContext {
                                                        "Stop references unknown StopArea"));
         stopAreas().values()
                    .map(JrStopArea::fkTerminal)
-                   .forEach(fk -> Preconditions.checkState(terminalAreas().containsKey(fk),
+                   .filter(Optional::isPresent)
+                   .forEach(fk -> Preconditions.checkState(terminalAreas().containsKey(fk.orElseThrow()),
                                                            "StopArea references unknown Terminal"));
     }
 
@@ -110,8 +111,17 @@ public interface JoreImportContext {
     default Map<JrTerminalAreaPk, Set<JrStopArea>> stopAreasPerTerminal() {
         return stopAreas()
                 .values()
-                .groupBy(JrStopArea::fkTerminal)
+                .filter(area -> area.fkTerminal().isPresent())
+                .groupBy(area -> area.fkTerminal().orElseThrow())
                 .mapValues(HashSet::ofAll);
+    }
+
+    @Value.Derived
+    default Set<JrStopArea> stopAreasNotInTerminals() {
+        return stopAreas()
+                .values()
+                .filter(area -> area.fkTerminal().isEmpty())
+                .toSet();
     }
 
     @Value.Derived

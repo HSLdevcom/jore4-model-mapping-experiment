@@ -5,17 +5,17 @@ import fi.hsl.transmodel.model.jore.field.TransitType;
 import fi.hsl.transmodel.model.jore.field.generated.StopAreaId;
 import fi.hsl.transmodel.model.jore.field.generated.TerminalId;
 import fi.hsl.transmodel.model.jore.key.JrStopAreaPk;
-import fi.hsl.transmodel.model.jore.key.JrTerminalAreaPk;
-import fi.hsl.transmodel.model.jore.mapping.JoreForeignKey;
 import fi.hsl.transmodel.model.jore.mapping.JoreTable;
 import fi.hsl.transmodel.model.jore.mixin.IHasCoordinates;
 import fi.hsl.transmodel.model.jore.mixin.IHasName;
 import fi.hsl.transmodel.model.jore.mixin.IHasPrimaryKey;
 import fi.hsl.transmodel.model.jore.mixin.IHasStopAreaId;
-import fi.hsl.transmodel.model.jore.mixin.IHasTerminalId;
+import fi.hsl.transmodel.model.jore.mixin.IHasTerminalIdFk;
 import fi.hsl.transmodel.model.jore.mixin.IHasTransitType;
 import fi.hsl.transmodel.model.jore.style.JoreDtoStyle;
 import org.immutables.value.Value;
+
+import java.util.Optional;
 
 @Value.Immutable
 @JoreDtoStyle
@@ -23,7 +23,7 @@ import org.immutables.value.Value;
 public interface JrStopArea
         extends IHasPrimaryKey<JrStopAreaPk>,
                 IHasStopAreaId,
-                IHasTerminalId,
+                IHasTerminalIdFk,
                 IHasTransitType,
                 IHasName,
                 IHasCoordinates {
@@ -33,14 +33,8 @@ public interface JrStopArea
         return JrStopAreaPk.of(stopAreaId());
     }
 
-    @Value.Derived
-    @JoreForeignKey(targetTable = Tables.JR_LIJ_TERMINAALIALUE)
-    default JrTerminalAreaPk fkTerminal() {
-        return JrTerminalAreaPk.of(terminalId());
-    }
-
     static JrStopArea of(final StopAreaId stopAreaId,
-                         final TerminalId terminalId,
+                         final Optional<TerminalId> terminalId,
                          final TransitType transitType,
                          final String name,
                          final String latitude,

@@ -32,6 +32,7 @@ import fi.hsl.transmodel.model.netex.public_transport.tactical.service.Service;
 import fi.hsl.transmodel.model.netex.public_transport.tactical.service.ServiceLink;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
+import io.vavr.collection.HashSet;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
 import io.vavr.collection.Set;
@@ -87,14 +88,14 @@ public class JoreImportContextConverter {
                                                        // Unwrap the quay from the tuple
                                                        .mapValues(list -> list.map(Tuple2::_2));
 
-        final Map<JrTerminalAreaPk, List<StopPlace>> stopPlaces = ctx.stopAreas()
-                                                                     .values()
-                                                                     .toList()
-                                                                     .map(stopArea -> Tuple.of(stopArea.fkTerminal(),
-                                                                                               jrStopAreaToStopPlace(stopArea,
-                                                                                                                     quays)))
-                                                                     .groupBy(Tuple2::_1)
-                                                                     .mapValues(list -> list.map(Tuple2::_2));
+        final Set<StopPlace> stopPlaces = HashSet
+                .<StopPlace>empty()
+                .addAll(ctx.terminalAreas()
+                           .values()
+                           .map(terminal -> jrTerminalAreaToStopPlace(terminal, ctx.stopAreasPerTerminal(), quays)))
+                .addAll(ctx.stopAreasNotInTerminals()
+                           .map(stopArea -> jrStopAreaToStopPlace(stopArea, quays)));
+
 
         /*
          * Routes and services
@@ -125,10 +126,7 @@ public class JoreImportContextConverter {
         final InfrastructureFrame infrastructure = InfrastructureFrame.of(roadJunctions.values(),
                                                                           roadElements.values());
 
-        final List<RootFrame> sites = ctx.terminalAreas()
-                                         .values()
-                                         .map(terminal -> (RootFrame) jrTerminalToSite(terminal, stopPlaces))
-                                         .toList();
+        final SiteFrame site = SiteFrame.of(stopPlaces);
 
         final Service routes = Service.of("routes")
                                       .withLines(lines.values().toSet())
@@ -141,7 +139,7 @@ public class JoreImportContextConverter {
 
         final List<RootFrame> frames = List.<RootFrame>empty()
                 .push(infrastructure)
-                .pushAll(sites)
+                .push(site)
                 .push(routes)
                 .push(services);
 
@@ -188,25 +186,31 @@ public class JoreImportContextConverter {
                        stop.longitude());
     }
 
+    private static StopPlace jrTerminalAreaToStopPlace(final JrTerminalArea terminal,
+                                                       final Map<JrTerminalAreaPk, Set<JrStopArea>> areas,
+                                                       final Map<JrStopAreaPk, List<Quay>> quays) {
+        final Set<JrStopArea> areasInTerminal = areas.getOrElse(terminal.pk(), HashSet.empty());
+        final List<Quay> quaysInTerminal = areasInTerminal.flatMap(area -> quays.getOrElse(area.pk(), List.empty()))
+                                                          .toList();
+        // Note that the data from JrStopAreas are effectively ignored
+        return StopPlace.of(String.format("terminal.%s", terminal.terminalId().value()),
+                            terminal.name(),
+                            terminal.latitude(),
+                            terminal.longitude(),
+                            toVehicleMode(terminal),
+                            toStopType(terminal),
+                            quaysInTerminal);
+    }
+
     private static StopPlace jrStopAreaToStopPlace(final JrStopArea area,
                                                    final Map<JrStopAreaPk, List<Quay>> quays) {
-        return StopPlace.of(area.stopAreaId().value(),
+        return StopPlace.of(String.format("stoparea.%s", area.stopAreaId().value()),
                             area.name(),
                             area.latitude(),
                             area.longitude(),
                             toVehicleMode(area),
                             toStopType(area),
                             quays.getOrElse(area.pk(), List.empty()));
-    }
-
-    private static SiteFrame jrTerminalToSite(final JrTerminalArea terminal,
-                                              final Map<JrTerminalAreaPk, List<StopPlace>> stopPlaces) {
-        // TODO: it is unclear whether Jore terminals should be modelled as Sites or as Stop Places
-        return SiteFrame.of(terminal.terminalId().value(),
-                            terminal.name(),
-                            terminal.latitude(),
-                            terminal.longitude(),
-                            stopPlaces.getOrElse(terminal.pk(), List.empty()));
     }
 
     private static Line jrLineHeaderToLine(final JrLineHeader header,
