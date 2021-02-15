@@ -3,6 +3,7 @@ package fi.hsl.transmodel.model.netex.public_transport.fixed.stop_place;
 import fi.hsl.transmodel.model.netex.common.style.NeTExDtoStyle;
 import org.immutables.value.Value;
 import org.rutebanken.netex.model.ObjectFactory;
+import org.rutebanken.netex.model.QuayRefStructure;
 
 import java.math.BigDecimal;
 
@@ -35,5 +36,12 @@ public abstract class Quay
                 .withName(nameXml())
                 .withPublicCode(publicCode())
                 .withCentroid(simplePointXml());
+    }
+
+    public QuayRefStructure ref() {
+        return new ObjectFactory()
+                .createQuayRefStructure()
+                .withRef(id())
+                .withVersion(version());
     }
 }

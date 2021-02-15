@@ -5,6 +5,7 @@ import io.vavr.collection.HashSet;
 import io.vavr.collection.Set;
 import org.immutables.value.Value;
 import org.rutebanken.netex.model.ObjectFactory;
+import org.rutebanken.netex.model.StopPlaceRefStructure;
 import org.rutebanken.netex.model.StopTypeEnumeration;
 import org.rutebanken.netex.model.VehicleModeEnumeration;
 
@@ -51,5 +52,12 @@ public abstract class StopPlace
                 .withQuays(factory.createQuays_RelStructure()
                                   .withQuayRefOrQuay(quays().map(quay -> (Object) quay.xml())
                                                             .toJavaList()));
+    }
+
+    public StopPlaceRefStructure ref() {
+        return new ObjectFactory()
+                .createStopPlaceRefStructure()
+                .withRef(id())
+                .withVersion(version());
     }
 }

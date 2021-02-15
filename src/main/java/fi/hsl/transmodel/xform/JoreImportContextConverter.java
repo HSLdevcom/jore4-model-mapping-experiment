@@ -30,8 +30,8 @@ import fi.hsl.transmodel.model.netex.public_transport.network.route.RoutePoint;
 import fi.hsl.transmodel.model.netex.public_transport.tactical.service.ScheduledStopPoint;
 import fi.hsl.transmodel.model.netex.public_transport.tactical.service.Service;
 import fi.hsl.transmodel.model.netex.public_transport.tactical.service.ServiceLink;
+import fi.hsl.transmodel.model.netex.public_transport.tactical.stop.PassengerStopAssignment;
 import io.vavr.Tuple;
-import io.vavr.Tuple2;
 import io.vavr.collection.HashSet;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
@@ -41,6 +41,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static fi.hsl.transmodel.xform.Util.toStopType;
 import static fi.hsl.transmodel.xform.Util.toVehicleMode;
@@ -77,22 +78,26 @@ public class JoreImportContextConverter {
          * Sites
          */
 
-        final Map<JrStopAreaPk, List<Quay>> quays = ctx.stops()
-                                                       .map(stop -> Tuple.of(stop.fkStopArea(),
-                                                                             jrStopToQuay(stop)))
-                                                       // Group into lists of tuples per stop area id
-                                                       .groupBy(Tuple2::_1)
-                                                       // Unwrap the quay from the tuple
-                                                       .mapValues(list -> list.map(Tuple2::_2));
+        final Map<JrStop, Quay> quays = ctx.stops()
+                                           .toMap(stop -> Tuple.of(stop,
+                                                                   jrStopToQuay(stop)));
+
+        final Map<JrNodePk, Quay> quaysPerNode = quays.mapKeys(JrStop::fkNode);
+
+        final Map<JrStopAreaPk, List<Quay>> quaysPerStopArea = quays.groupBy(stopAndQuay -> stopAndQuay._1().fkStopArea())
+                                                                    .mapValues(maps -> maps.values().toList());
 
         final Set<StopPlace> stopPlaces = HashSet
                 .<StopPlace>empty()
                 .addAll(ctx.terminalAreas()
                            .values()
-                           .map(terminal -> jrTerminalAreaToStopPlace(terminal, ctx.stopAreasPerTerminal(), quays)))
+                           .map(terminal -> jrTerminalAreaToStopPlace(terminal, ctx.stopAreasPerTerminal(), quaysPerStopArea)))
                 .addAll(ctx.stopAreasNotInTerminals()
-                           .map(stopArea -> jrStopAreaToStopPlace(stopArea, quays)));
+                           .map(stopArea -> jrStopAreaToStopPlace(stopArea, quaysPerStopArea)));
 
+        final Map<Quay, StopPlace> stopPlacesPerQuay = stopPlaces.flatMap(stopPlace -> stopPlace.quays()
+                                                                                                .map(quay -> Tuple.of(quay, stopPlace)))
+                                                                 .toMap(Function.identity());
 
         /*
          * Routes and services
@@ -116,6 +121,12 @@ public class JoreImportContextConverter {
         final Set<ServiceLink> serviceLinks = ctx.busStopLinks()
                                                  .map(nodeTuple -> serviceLink(nodeTuple._1(), nodeTuple._2(), stopPoints));
 
+        final Set<PassengerStopAssignment> stopAssignments = stopPoints
+                .map(nodeAndStopPoint -> stopAssignment(nodeAndStopPoint._2(),
+                                                        quaysPerNode.get(nodeAndStopPoint._1()).get(),
+                                                        stopPlacesPerQuay))
+                .toSet();
+
         /*
          * Top level frames:
          */
@@ -132,7 +143,8 @@ public class JoreImportContextConverter {
 
         final Service services = Service.of("services")
                                         .withStopPoints(stopPoints.values().toSet())
-                                        .withServiceLinks(serviceLinks);
+                                        .withServiceLinks(serviceLinks)
+                                        .withStopAssignments(stopAssignments);
 
         final List<RootFrame> frames = List.<RootFrame>empty()
                 .push(infrastructure)
@@ -145,6 +157,15 @@ public class JoreImportContextConverter {
                 "JORE",
                 "Example NeTEx export from JORE",
                 frames);
+    }
+
+    private static PassengerStopAssignment stopAssignment(final ScheduledStopPoint stopPoint,
+                                                          final Quay quay,
+                                                          final Map<Quay, StopPlace> stopPlacesPerQuay) {
+        final StopPlace stopPlace = stopPlacesPerQuay.get(quay).get();
+        return PassengerStopAssignment.of(stopPoint,
+                                          stopPlace,
+                                          quay);
     }
 
     private static RoadJunction roadJunction(final JrNode node) {

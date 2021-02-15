@@ -3,6 +3,7 @@ package fi.hsl.transmodel.model.jore.entity;
 import fi.hsl.transmodel.model.jore.Tables;
 import fi.hsl.transmodel.model.jore.field.generated.NodeId;
 import fi.hsl.transmodel.model.jore.field.generated.StopAreaId;
+import fi.hsl.transmodel.model.jore.key.JrNodePk;
 import fi.hsl.transmodel.model.jore.key.JrStopAreaPk;
 import fi.hsl.transmodel.model.jore.mapping.JoreColumn;
 import fi.hsl.transmodel.model.jore.mapping.JoreForeignKey;
@@ -38,6 +39,12 @@ public interface JrStop
     @JoreForeignKey(targetTable = Tables.JR_LIJ_PYSAKKIALUE)
     default JrStopAreaPk fkStopArea() {
         return JrStopAreaPk.of(stopAreaId());
+    }
+
+    @Value.Derived
+    @JoreForeignKey(targetTable = Tables.JR_SOLMU)
+    default JrNodePk fkNode() {
+        return JrNodePk.of(nodeId());
     }
 
     static JrStop of(final StopAreaId stopAreaId,

@@ -7,6 +7,7 @@ import org.immutables.value.Value;
 import org.rutebanken.netex.model.ObjectFactory;
 import org.rutebanken.netex.model.ScheduledStopPointRefStructure;
 
+import javax.xml.bind.JAXBElement;
 import java.math.BigDecimal;
 
 @Value.Immutable
@@ -38,5 +39,10 @@ public abstract class ScheduledStopPoint
                 .createScheduledStopPointRefStructure()
                 .withVersion(version())
                 .withRef(id());
+    }
+
+    public JAXBElement<? extends ScheduledStopPointRefStructure> stopPointRefElement() {
+        return new ObjectFactory()
+                .createScheduledStopPointRef(stopPointRef());
     }
 }

@@ -6,6 +6,7 @@ import fi.hsl.transmodel.model.netex.generic.RootFrame;
 import fi.hsl.transmodel.model.netex.public_transport.network.route.Line;
 import fi.hsl.transmodel.model.netex.public_transport.network.route.RouteLink;
 import fi.hsl.transmodel.model.netex.public_transport.network.route.RoutePoint;
+import fi.hsl.transmodel.model.netex.public_transport.tactical.stop.PassengerStopAssignment;
 import io.vavr.collection.HashSet;
 import io.vavr.collection.Set;
 import org.immutables.value.Value;
@@ -17,6 +18,7 @@ import org.rutebanken.netex.model.RoutePointsInFrame_RelStructure;
 import org.rutebanken.netex.model.ScheduledStopPointsInFrame_RelStructure;
 import org.rutebanken.netex.model.ServiceFrame;
 import org.rutebanken.netex.model.ServiceLinksInFrame_RelStructure;
+import org.rutebanken.netex.model.StopAssignmentsInFrame_RelStructure;
 
 import javax.annotation.Nullable;
 import javax.xml.bind.JAXBElement;
@@ -52,6 +54,11 @@ public abstract class Service
         return HashSet.empty();
     }
 
+    @Value.Default
+    public Set<PassengerStopAssignment> stopAssignments() {
+        return HashSet.empty();
+    }
+
     public abstract Service withLines(Set<Line> lines);
 
     public abstract Service withRoutePoints(Set<RoutePoint> routePoints);
@@ -61,6 +68,8 @@ public abstract class Service
     public abstract Service withStopPoints(Set<ScheduledStopPoint> stopPoints);
 
     public abstract Service withServiceLinks(Set<ServiceLink> serviceLinks);
+
+    public abstract Service withStopAssignments(Set<PassengerStopAssignment> stopAssignments);
 
     public static Service of(final String id) {
         return ImmutableService.builder()
@@ -80,6 +89,7 @@ public abstract class Service
                        .withRouteLinks(routeLinksFrame())
                        .withScheduledStopPoints(stopPointsFrame())
                        .withServiceLinks(serviceLinksFrame())
+                       .withStopAssignments(stopAssignmentsFrame())
         );
     }
 
@@ -132,5 +142,13 @@ public abstract class Service
                                           .withServiceLink(serviceLinks()
                                                                    .map(ServiceLink::xml)
                                                                    .toJavaList());
+    }
+
+    @Nullable
+    private StopAssignmentsInFrame_RelStructure stopAssignmentsFrame() {
+        return stopAssignments().isEmpty() ?
+                null : new ObjectFactory().createStopAssignmentsInFrame_RelStructure()
+                                          .withStopAssignment(Lists.newLinkedList(stopAssignments()
+                                                                                          .map(PassengerStopAssignment::xml)));
     }
 }
