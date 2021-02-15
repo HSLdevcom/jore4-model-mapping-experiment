@@ -19,6 +19,7 @@ import fi.hsl.transmodel.model.jore.key.JrStopAreaPk;
 import fi.hsl.transmodel.model.jore.key.JrTerminalAreaPk;
 import fi.hsl.transmodel.model.netex.PublicationDelivery;
 import fi.hsl.transmodel.model.netex.generic.PointOnLink;
+import fi.hsl.transmodel.model.netex.generic.PostalAddress;
 import fi.hsl.transmodel.model.netex.generic.RootFrame;
 import fi.hsl.transmodel.model.netex.public_transport.fixed.site.SiteFrame;
 import fi.hsl.transmodel.model.netex.public_transport.fixed.stop_place.Quay;
@@ -251,7 +252,10 @@ public class JoreImportContextConverter {
                        stop.name(),
                        stop.platform(),
                        stop.latitude(),
-                       stop.longitude());
+                       stop.longitude(),
+                       PostalAddress.of(stop.nodeId().value(),
+                                        stop.address())
+                                    .withPostCode(stop.postalNumber()));
     }
 
     private static StopPlace jrTerminalAreaToStopPlace(final JrTerminalArea terminal,
