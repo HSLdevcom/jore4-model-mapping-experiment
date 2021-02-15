@@ -7,7 +7,7 @@ import fi.hsl.transmodel.model.jore.mixin.IHasRouteDirection;
 import fi.hsl.transmodel.model.jore.mixin.IHasRouteId;
 import org.immutables.value.Value;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Value.Immutable
 public interface JrRoutePathPk extends IHasRouteId,
@@ -15,7 +15,7 @@ public interface JrRoutePathPk extends IHasRouteId,
                                        IHasRouteDirection {
     static JrRoutePathPk of(final RouteId routeId,
                             final RouteDirection direction,
-                            final Instant validFrom) {
+                            final LocalDateTime validFrom) {
         return ImmutableJrRoutePathPk.builder()
                                      .routeId(routeId)
                                      .direction(direction)

@@ -24,7 +24,7 @@ import fi.hsl.transmodel.model.jore.field.generated.TerminalId;
 import io.vavr.collection.List;
 
 import java.time.Duration;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**
@@ -49,7 +49,7 @@ public final class MockJoreContextBuilder {
     }
 
     public static JoreImportContext ctx() {
-        final Instant validFrom = Instant.now();
+        final LocalDateTime validFrom = LocalDateTime.now();
         final List<JrLine> lines = List.of(
                 JrLine.of(LINE_1001,
                           TRANSIT_TYPE,

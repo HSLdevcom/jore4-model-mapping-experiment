@@ -16,7 +16,7 @@ import fi.hsl.transmodel.model.jore.mixin.IHasRouteId;
 import fi.hsl.transmodel.model.jore.style.JoreDtoStyle;
 import org.immutables.value.Value;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Value.Immutable
@@ -36,10 +36,10 @@ public interface JrRoutePath
     String destination();
 
     @JoreColumn(name = "suuvoimast")
-    Instant validFrom();
+    LocalDateTime validFrom();
 
     @JoreColumn(name = "suuvoimviimpvm")
-    Optional<Instant> validTo();
+    Optional<LocalDateTime> validTo();
 
     @Value.Derived
     default JrRoutePathPk pk() {
@@ -59,7 +59,7 @@ public interface JrRoutePath
                           final String name,
                           final String origin,
                           final String destination,
-                          final Instant validFrom) {
+                          final LocalDateTime validFrom) {
         return ImmutableJrRoutePath.builder()
                                    .routeId(routeId)
                                    .direction(direction)

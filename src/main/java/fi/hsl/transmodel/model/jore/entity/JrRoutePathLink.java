@@ -23,7 +23,7 @@ import fi.hsl.transmodel.model.jore.mixin.IHasTransitType;
 import fi.hsl.transmodel.model.jore.style.JoreDtoStyle;
 import org.immutables.value.Value;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Value.Immutable
 @JoreDtoStyle
@@ -41,7 +41,7 @@ public interface JrRoutePathLink
     int orderNumber();
 
     @JoreColumn(name = "suuvoimast")
-    Instant validFrom();
+    LocalDateTime validFrom();
 
     @Value.Derived
     default JrRoutePathLinkPk pk() {
@@ -83,7 +83,7 @@ public interface JrRoutePathLink
                               final int order,
                               final NodeId startNode,
                               final NodeId endNode,
-                              final Instant validFrom) {
+                              final LocalDateTime validFrom) {
         return ImmutableJrRoutePathLink.builder()
                                        .routeId(routeId)
                                        .transitType(transitType)

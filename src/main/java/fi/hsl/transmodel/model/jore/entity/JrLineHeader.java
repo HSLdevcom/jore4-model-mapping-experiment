@@ -14,7 +14,7 @@ import fi.hsl.transmodel.model.jore.mixin.IHasPrimaryKey;
 import fi.hsl.transmodel.model.jore.style.JoreDtoStyle;
 import org.immutables.value.Value;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Value.Immutable
@@ -38,10 +38,10 @@ public interface JrLineHeader
     }
 
     @JoreColumn(name = "linalkupvm")
-    Instant validFrom();
+    LocalDateTime validFrom();
 
     @JoreColumn(name = "linloppupvm")
-    Optional<Instant> validTo();
+    Optional<LocalDateTime> validTo();
 
     @JoreColumn(name = "lahtoPaikka1")
     String startPlace1();
@@ -53,8 +53,8 @@ public interface JrLineHeader
                            final String name,
                            final String startPlace1,
                            final String startPlace2,
-                           final Instant validFrom,
-                           final Instant validTo) {
+                           final LocalDateTime validFrom,
+                           final LocalDateTime validTo) {
         return ImmutableJrLineHeader.builder()
                                     .lineId(lineId)
                                     .name(name)

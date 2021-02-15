@@ -1,10 +1,10 @@
 package fi.hsl.transmodel.model.jore.mixin;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface IHasDuration {
-    Instant validFrom();
+    LocalDateTime validFrom();
 
-    Optional<Instant> validTo();
+    Optional<LocalDateTime> validTo();
 }

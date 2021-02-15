@@ -44,8 +44,6 @@ import io.vavr.collection.Map;
 import io.vavr.collection.Set;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -207,13 +205,12 @@ public class JoreImportContextConverter {
 
     private static Route route(final JrRoutePath routePath,
                                final Line line) {
-        final ZoneId zone = ZoneId.of("Europe/Helsinki");
         return Route.of(routePath.routeId().value(),
                         routePath.name(),
                         line,
                         direction(routePath.direction()),
-                        LocalDateTime.ofInstant(routePath.validFrom(), zone),
-                        routePath.validTo().map(inst -> LocalDateTime.ofInstant(inst, zone)));
+                        routePath.validFrom(),
+                        routePath.validTo());
     }
 
     private static PassengerStopAssignment stopAssignment(final ScheduledStopPoint stopPoint,
@@ -286,13 +283,12 @@ public class JoreImportContextConverter {
 
     private static Line jrLineHeaderToLine(final JrLineHeader header,
                                            final JrLine line) {
-        final ZoneId zone = ZoneId.of("Europe/Helsinki");
         return Line.of(line.lineId().value(),
                        line.lineId().value(),
                        header.name(),
                        header.validFrom().toString(),
-                       Optional.of(header.validFrom()).map(inst -> LocalDateTime.ofInstant(inst, zone)),
-                       header.validTo().map(inst -> LocalDateTime.ofInstant(inst, zone)));
+                       Optional.of(header.validFrom()),
+                       header.validTo());
     }
 
     private static ScheduledStopPoint jrNodeToStopPoint(final JrNode node) {
