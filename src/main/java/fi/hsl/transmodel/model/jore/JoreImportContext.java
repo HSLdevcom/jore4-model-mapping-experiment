@@ -30,6 +30,7 @@ import io.vavr.collection.HashSet;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
 import io.vavr.collection.Set;
+import io.vavr.collection.Traversable;
 import org.immutables.value.Value;
 
 import java.time.LocalDateTime;
@@ -129,6 +130,13 @@ public interface JoreImportContext {
         return stops()
                 .groupBy(JrStop::fkStopArea)
                 .mapValues(HashSet::ofAll);
+    }
+
+    @Value.Derived
+    default Map<JrNodePk, JrStop> stopsPerNode() {
+        return stops()
+                .groupBy(JrStop::fkNode)
+                .mapValues(Traversable::head);
     }
 
     @Value.Derived

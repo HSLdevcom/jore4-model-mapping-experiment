@@ -17,10 +17,12 @@ public abstract class ScheduledStopPoint
                    RouteLinkEndpoint {
 
     public static ScheduledStopPoint of(final String id,
+                                        final String name,
                                         final BigDecimal latitude,
                                         final BigDecimal longitude) {
         return ImmutableScheduledStopPoint.builder()
                                           .id(String.format("ssp.%s", id))
+                                          .name(name)
                                           .latitude(latitude)
                                           .longitude(longitude)
                                           .build();
@@ -31,6 +33,7 @@ public abstract class ScheduledStopPoint
                 .createScheduledStopPoint()
                 .withId(id())
                 .withVersion(version())
+                .withName(nameXml())
                 .withLocation(locationXml());
     }
 

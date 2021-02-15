@@ -116,7 +116,7 @@ public class JoreImportContextConverter {
         final Map<JrNodePk, RoutePoint> routePoints = roadJunctions.map((id, junction) -> Tuple.of(id, RoutePoint.of(junction)));
 
         final Map<JrNodePk, ScheduledStopPoint> stopPoints = ctx.busStopRoutePoints()
-                                                                .toMap(node -> Tuple.of(node.pk(), jrNodeToStopPoint(node)));
+                                                                .toMap(node -> Tuple.of(node.pk(), jrNodeToStopPoint(node, ctx.stopsPerNode().get(node.pk()).get())));
 
         final Map<Tuple2<JrNodePk, JrNodePk>, RouteLink> routeLinks = ctx.links()
                                                                          .values()
@@ -291,8 +291,10 @@ public class JoreImportContextConverter {
                        header.validTo());
     }
 
-    private static ScheduledStopPoint jrNodeToStopPoint(final JrNode node) {
+    private static ScheduledStopPoint jrNodeToStopPoint(final JrNode node,
+                                                        final JrStop stop) {
         return ScheduledStopPoint.of(node.nodeId().value(),
+                                     stop.name(),
                                      node.latitude(),
                                      node.longitude());
     }
