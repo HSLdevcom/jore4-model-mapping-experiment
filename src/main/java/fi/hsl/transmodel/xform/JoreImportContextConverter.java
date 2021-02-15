@@ -171,10 +171,10 @@ public class JoreImportContextConverter {
                                         .withStopAssignments(stopAssignments);
 
         final List<RootFrame> frames = List.<RootFrame>empty()
-                .push(infrastructure)
-                .push(site)
-                .push(routeFrame)
-                .push(services);
+                .append(infrastructure)
+                .append(site)
+                .append(routeFrame)
+                .append(services);
 
         return PublicationDelivery.of(
                 "publication",

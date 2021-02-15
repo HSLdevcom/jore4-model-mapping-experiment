@@ -5,8 +5,7 @@ import fi.hsl.transmodel.model.netex.common.mixin.IHasDescription;
 import fi.hsl.transmodel.model.netex.common.style.NeTExDtoStyle;
 import fi.hsl.transmodel.model.netex.generic.RootFrame;
 import fi.hsl.transmodel.model.netex.generic.VersionedEntity;
-import io.vavr.collection.HashSet;
-import io.vavr.collection.Set;
+import io.vavr.collection.List;
 import org.immutables.value.Value;
 import org.rutebanken.netex.model.Common_VersionFrameStructure;
 import org.rutebanken.netex.model.ObjectFactory;
@@ -15,7 +14,6 @@ import org.rutebanken.netex.model.PublicationDeliveryStructure;
 import javax.xml.bind.JAXBElement;
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.List;
 
 @Value.Immutable
 @NeTExDtoStyle
@@ -25,7 +23,7 @@ public abstract class PublicationDelivery
 
     public abstract String participant();
 
-    public abstract Set<RootFrame> frames();
+    public abstract List<RootFrame> frames();
 
     public static PublicationDelivery of(final String id,
                                          final String participant,
@@ -35,7 +33,7 @@ public abstract class PublicationDelivery
                                            .id(id)
                                            .participant(participant)
                                            .description(description)
-                                           .frames(HashSet.ofAll(frames))
+                                           .frames(List.ofAll(frames))
                                            .build();
     }
 
@@ -44,7 +42,7 @@ public abstract class PublicationDelivery
         final Collection<JAXBElement<? extends Common_VersionFrameStructure>> nested =
                 Lists.newLinkedList(frames().map(RootFrame::xml));
         final Collection<JAXBElement<? extends Common_VersionFrameStructure>> compositeFrame =
-                List.of(factory.createCompositeFrame(
+                Lists.newArrayList(factory.createCompositeFrame(
                         factory.createCompositeFrame()
                                .withId(id())
                                .withVersion(version())
