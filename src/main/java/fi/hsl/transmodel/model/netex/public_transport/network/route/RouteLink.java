@@ -4,6 +4,7 @@ import fi.hsl.transmodel.model.netex.common.style.NeTExDtoStyle;
 import fi.hsl.transmodel.model.netex.generic.Link;
 import org.immutables.value.Value;
 import org.rutebanken.netex.model.ObjectFactory;
+import org.rutebanken.netex.model.RouteLinkRefStructure;
 
 import java.math.BigDecimal;
 
@@ -33,7 +34,14 @@ public abstract class RouteLink
                 .withId(id())
                 .withVersion(version())
                 .withDistance(distance())
-                .withFromPointRef(from().pointRef())
-                .withToPointRef(to().pointRef());
+                .withFromPointRef(from().routePointRef())
+                .withToPointRef(to().routePointRef());
+    }
+
+    public RouteLinkRefStructure ref() {
+        return new ObjectFactory()
+                .createRouteLinkRefStructure()
+                .withRef(id())
+                .withVersion(version());
     }
 }

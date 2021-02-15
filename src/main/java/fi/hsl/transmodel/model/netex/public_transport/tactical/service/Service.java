@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import fi.hsl.transmodel.model.netex.common.style.NeTExDtoStyle;
 import fi.hsl.transmodel.model.netex.generic.RootFrame;
 import fi.hsl.transmodel.model.netex.public_transport.network.route.Line;
+import fi.hsl.transmodel.model.netex.public_transport.network.route.Route;
 import fi.hsl.transmodel.model.netex.public_transport.network.route.RouteLink;
 import fi.hsl.transmodel.model.netex.public_transport.network.route.RoutePoint;
 import fi.hsl.transmodel.model.netex.public_transport.tactical.stop.PassengerStopAssignment;
@@ -15,6 +16,7 @@ import org.rutebanken.netex.model.LinesInFrame_RelStructure;
 import org.rutebanken.netex.model.ObjectFactory;
 import org.rutebanken.netex.model.RouteLinksInFrame_RelStructure;
 import org.rutebanken.netex.model.RoutePointsInFrame_RelStructure;
+import org.rutebanken.netex.model.RoutesInFrame_RelStructure;
 import org.rutebanken.netex.model.ScheduledStopPointsInFrame_RelStructure;
 import org.rutebanken.netex.model.ServiceFrame;
 import org.rutebanken.netex.model.ServiceLinksInFrame_RelStructure;
@@ -45,6 +47,11 @@ public abstract class Service
     }
 
     @Value.Default
+    public Set<Route> routes() {
+        return HashSet.empty();
+    }
+
+    @Value.Default
     public Set<ScheduledStopPoint> stopPoints() {
         return HashSet.empty();
     }
@@ -64,6 +71,8 @@ public abstract class Service
     public abstract Service withRoutePoints(Set<RoutePoint> routePoints);
 
     public abstract Service withRouteLinks(Set<RouteLink> routeLinks);
+
+    public abstract Service withRoutes(Set<Route> routes);
 
     public abstract Service withStopPoints(Set<ScheduledStopPoint> stopPoints);
 
@@ -87,6 +96,7 @@ public abstract class Service
                        .withLines(linesFrame())
                        .withRoutePoints(routePointsFrame())
                        .withRouteLinks(routeLinksFrame())
+                       .withRoutes(routesFrame())
                        .withScheduledStopPoints(stopPointsFrame())
                        .withServiceLinks(serviceLinksFrame())
                        .withStopAssignments(stopAssignmentsFrame())
@@ -124,6 +134,13 @@ public abstract class Service
                                           .withRouteLink(routeLinks()
                                                                  .map(RouteLink::xml)
                                                                  .toJavaList());
+    }
+
+    @Nullable
+    private RoutesInFrame_RelStructure routesFrame() {
+        return routes().isEmpty() ?
+                null : new ObjectFactory().createRoutesInFrame_RelStructure()
+                                          .withRoute_(Lists.newLinkedList(routes().map(Route::xml)));
     }
 
     @Nullable

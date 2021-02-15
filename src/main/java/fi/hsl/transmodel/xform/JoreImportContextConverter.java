@@ -6,6 +6,9 @@ import fi.hsl.transmodel.model.jore.entity.JrLineHeader;
 import fi.hsl.transmodel.model.jore.entity.JrLink;
 import fi.hsl.transmodel.model.jore.entity.JrNode;
 import fi.hsl.transmodel.model.jore.entity.JrPoint;
+import fi.hsl.transmodel.model.jore.entity.JrRoute;
+import fi.hsl.transmodel.model.jore.entity.JrRoutePath;
+import fi.hsl.transmodel.model.jore.entity.JrRoutePathLink;
 import fi.hsl.transmodel.model.jore.entity.JrStop;
 import fi.hsl.transmodel.model.jore.entity.JrStopArea;
 import fi.hsl.transmodel.model.jore.entity.JrTerminalArea;
@@ -24,6 +27,8 @@ import fi.hsl.transmodel.model.netex.public_transport.network.infrastructure.Inf
 import fi.hsl.transmodel.model.netex.public_transport.network.infrastructure.RoadElement;
 import fi.hsl.transmodel.model.netex.public_transport.network.infrastructure.RoadJunction;
 import fi.hsl.transmodel.model.netex.public_transport.network.route.Line;
+import fi.hsl.transmodel.model.netex.public_transport.network.route.PointOnRoute;
+import fi.hsl.transmodel.model.netex.public_transport.network.route.Route;
 import fi.hsl.transmodel.model.netex.public_transport.network.route.RouteLink;
 import fi.hsl.transmodel.model.netex.public_transport.network.route.RouteLinkEndpoint;
 import fi.hsl.transmodel.model.netex.public_transport.network.route.RoutePoint;
@@ -32,6 +37,7 @@ import fi.hsl.transmodel.model.netex.public_transport.tactical.service.Service;
 import fi.hsl.transmodel.model.netex.public_transport.tactical.service.ServiceLink;
 import fi.hsl.transmodel.model.netex.public_transport.tactical.stop.PassengerStopAssignment;
 import io.vavr.Tuple;
+import io.vavr.Tuple2;
 import io.vavr.collection.HashSet;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
@@ -43,6 +49,7 @@ import java.time.ZoneId;
 import java.util.Optional;
 import java.util.function.Function;
 
+import static fi.hsl.transmodel.xform.Util.direction;
 import static fi.hsl.transmodel.xform.Util.toStopType;
 import static fi.hsl.transmodel.xform.Util.toVehicleMode;
 
@@ -113,10 +120,10 @@ public class JoreImportContextConverter {
         final Map<JrNodePk, ScheduledStopPoint> stopPoints = ctx.busStopRoutePoints()
                                                                 .toMap(node -> Tuple.of(node.pk(), jrNodeToStopPoint(node)));
 
-        final Set<RouteLink> routeLinks = ctx.links()
-                                             .values()
-                                             .map(link -> jrLinkToRouteLink(link, routePoints, stopPoints))
-                                             .toSet();
+        final Map<Tuple2<JrNodePk, JrNodePk>, RouteLink> routeLinks = ctx.links()
+                                                                         .values()
+                                                                         .toMap(link -> Tuple.of(Tuple.of(link.fkStartNode(), link.fkEndNode()),
+                                                                                                 jrLinkToRouteLink(link, routePoints, stopPoints)));
 
         final Set<ServiceLink> serviceLinks = ctx.busStopLinks()
                                                  .map(nodeTuple -> serviceLink(nodeTuple._1(), nodeTuple._2(), stopPoints));
@@ -127,6 +134,22 @@ public class JoreImportContextConverter {
                                                         stopPlacesPerQuay))
                 .toSet();
 
+        final Set<Route> routes = ctx.routePaths()
+                                     .values()
+                                     .map(routePath -> {
+                                         final JrRoute route = ctx.routes().get(routePath.fkRoute()).get();
+                                         final JrLineHeader lineHeader = ctx.routeToLineHeader().get(route.pk()).get();
+                                         final Line line = lines.get(lineHeader.pk()).get();
+                                         final Route r = route(routePath, line);
+                                         final List<PointOnRoute> points = pointsOnRoute(r,
+                                                                                         routePoints,
+                                                                                         routeLinks,
+                                                                                         ctx.linksPerRoutePath()
+                                                                                            .getOrElse(routePath.pk(), List.empty()));
+                                         return r.withPoints(points);
+                                     })
+                                     .toSet();
+
         /*
          * Top level frames:
          */
@@ -136,10 +159,11 @@ public class JoreImportContextConverter {
 
         final SiteFrame site = SiteFrame.of(stopPlaces);
 
-        final Service routes = Service.of("routes")
-                                      .withLines(lines.values().toSet())
-                                      .withRoutePoints(routePoints.values().toSet())
-                                      .withRouteLinks(routeLinks);
+        final Service routeFrame = Service.of("routes")
+                                          .withLines(lines.values().toSet())
+                                          .withRoutePoints(routePoints.values().toSet())
+                                          .withRouteLinks(routeLinks.values().toSet())
+                                          .withRoutes(routes);
 
         final Service services = Service.of("services")
                                         .withStopPoints(stopPoints.values().toSet())
@@ -149,7 +173,7 @@ public class JoreImportContextConverter {
         final List<RootFrame> frames = List.<RootFrame>empty()
                 .push(infrastructure)
                 .push(site)
-                .push(routes)
+                .push(routeFrame)
                 .push(services);
 
         return PublicationDelivery.of(
@@ -157,6 +181,39 @@ public class JoreImportContextConverter {
                 "JORE",
                 "Example NeTEx export from JORE",
                 frames);
+    }
+
+    private static List<PointOnRoute> pointsOnRoute(final Route route,
+                                                    final Map<JrNodePk, RoutePoint> routePoints,
+                                                    final Map<Tuple2<JrNodePk, JrNodePk>, RouteLink> routeLinks,
+                                                    final List<JrRoutePathLink> routePathLinks) {
+        final JrRoutePathLink finalLink = routePathLinks.last();
+        return routePathLinks
+                .map(routePathLink -> {
+                    final RoutePoint rp = routePoints.get(routePathLink.fkStartNode()).get();
+                    final RouteLink link = routeLinks.get(Tuple.of(routePathLink.fkStartNode(),
+                                                                   routePathLink.fkEndNode()))
+                                                     .get();
+                    return PointOnRoute.of(route.id(),
+                                           rp,
+                                           routePathLink.orderNumber(),
+                                           link);
+                })
+                // Add an extra point to indicate the end of the route with no onwards link
+                .append(PointOnRoute.of(route.id(),
+                                        routePoints.get(finalLink.fkEndNode()).get(),
+                                        finalLink.orderNumber() + 1));
+    }
+
+    private static Route route(final JrRoutePath routePath,
+                               final Line line) {
+        final ZoneId zone = ZoneId.of("Europe/Helsinki");
+        return Route.of(routePath.routeId().value(),
+                        routePath.name(),
+                        line,
+                        direction(routePath.direction()),
+                        LocalDateTime.ofInstant(routePath.validFrom(), zone),
+                        routePath.validTo().map(inst -> LocalDateTime.ofInstant(inst, zone)));
     }
 
     private static PassengerStopAssignment stopAssignment(final ScheduledStopPoint stopPoint,

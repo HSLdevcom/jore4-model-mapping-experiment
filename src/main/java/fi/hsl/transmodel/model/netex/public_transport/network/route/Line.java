@@ -4,8 +4,10 @@ import fi.hsl.transmodel.model.netex.common.mixin.IHasName;
 import fi.hsl.transmodel.model.netex.common.style.NeTExDtoStyle;
 import fi.hsl.transmodel.model.netex.generic.VersionedEntity;
 import org.immutables.value.Value;
+import org.rutebanken.netex.model.LineRefStructure;
 import org.rutebanken.netex.model.ObjectFactory;
 
+import javax.xml.bind.JAXBElement;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -41,5 +43,14 @@ public abstract class Line
                 .withValidBetween(validBetweenXml())
                 .withPublicCode(publicCode())
                 .withName(nameXml());
+    }
+
+    public JAXBElement<? extends LineRefStructure> lineRef() {
+        final ObjectFactory factory = new ObjectFactory();
+        return factory.createLineRef(
+                factory.createLineRefStructure()
+                       .withRef(id())
+                       .withVersion(version())
+        );
     }
 }

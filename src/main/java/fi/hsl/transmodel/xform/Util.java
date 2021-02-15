@@ -2,7 +2,9 @@ package fi.hsl.transmodel.xform;
 
 import fi.hsl.transmodel.model.jore.entity.JrStopArea;
 import fi.hsl.transmodel.model.jore.entity.JrTerminalArea;
+import fi.hsl.transmodel.model.jore.field.RouteDirection;
 import fi.hsl.transmodel.model.jore.mixin.IHasTransitType;
+import org.rutebanken.netex.model.DirectionTypeEnumeration;
 import org.rutebanken.netex.model.StopTypeEnumeration;
 import org.rutebanken.netex.model.VehicleModeEnumeration;
 
@@ -57,5 +59,16 @@ public final class Util {
                 return StopTypeEnumeration.FERRY_STOP;
         }
         return StopTypeEnumeration.OTHER;
+    }
+
+    public static DirectionTypeEnumeration direction(final RouteDirection jrDirection) {
+        // This is an arbitrary guess as RouteDirection doesn't actually specify the direction
+        switch (jrDirection) {
+            case DIRECTION_1:
+                return DirectionTypeEnumeration.OUTBOUND;
+            case DIRECTION_2:
+                return DirectionTypeEnumeration.INBOUND;
+        }
+        return DirectionTypeEnumeration.INBOUND;
     }
 }
