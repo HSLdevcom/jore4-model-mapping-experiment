@@ -63,11 +63,8 @@ public class JoreImportContextConverter {
                                                              .values()
                                                              .toMap(node -> Tuple.of(node.pk(), roadJunction(node)));
 
-        final Map<JrLinkPk, List<PointOnLink>> pointsOnLink = ctx.links()
-                                                                 .values()
-                                                                 .toMap(link -> Tuple.of(link.pk(),
-                                                                                         pointsInLink(ctx.pointsPerLink()
-                                                                                                         .getOrElse(link.pk(), List.empty()))));
+        final Map<JrLinkPk, List<PointOnLink>> pointsOnLink = ctx.pointsPerLink()
+                                                                 .mapValues(points -> points.map(JoreImportContextConverter::pointOnLink));
 
         final Map<JrLinkPk, RoadElement> roadElements = ctx.links()
                                                            .values()
@@ -165,10 +162,6 @@ public class JoreImportContextConverter {
                               to,
                               BigDecimal.valueOf(link.measuredLength()),
                               pointsInLink);
-    }
-
-    private static List<PointOnLink> pointsInLink(final List<JrPoint> listOfPoints) {
-        return listOfPoints.map(JoreImportContextConverter::pointOnLink);
     }
 
     private static PointOnLink pointOnLink(final JrPoint point) {
